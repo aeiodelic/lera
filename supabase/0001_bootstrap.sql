@@ -26,6 +26,10 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- Optional: link an EVM wallet to a profile
+alter table public.profiles add column if not exists wallet_address text;
+create unique index if not exists profiles_wallet_address_key on public.profiles(wallet_address) where wallet_address is not null;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -167,89 +171,113 @@ alter table public.votes enable row level security;
 alter table public.treasury_entries enable row level security;
 
 -- Profiles policies
-create policy if not exists "Public profiles read"
+drop policy if exists "Public profiles read" on public.profiles;
+create policy "Public profiles read"
   on public.profiles for select
   using (true);
 
-create policy if not exists "Users manage own profile"
+drop policy if exists "Users manage own profile" on public.profiles;
+create policy "Users manage own profile"
   on public.profiles for update to authenticated
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+drop policy if exists "Users create own profile" on public.profiles;
+create policy "Users create own profile"
+  on public.profiles for insert to authenticated
+  with check (auth.uid() = id);
+
 -- Events policies
-create policy if not exists "Public events read"
+drop policy if exists "Public events read" on public.events;
+create policy "Public events read"
   on public.events for select
   using (true);
 
-create policy if not exists "Create event (authenticated)"
+drop policy if exists "Create event (authenticated)" on public.events;
+create policy "Create event (authenticated)"
   on public.events for insert to authenticated
   with check (created_by = auth.uid());
 
-create policy if not exists "Owner can update event"
+drop policy if exists "Owner can update event" on public.events;
+create policy "Owner can update event"
   on public.events for update to authenticated
   using (created_by = auth.uid())
   with check (created_by = auth.uid());
 
 -- Artists policies
-create policy if not exists "Public artists read"
+drop policy if exists "Public artists read" on public.artists;
+create policy "Public artists read"
   on public.artists for select
   using (true);
 
-create policy if not exists "Auth manage artists"
+drop policy if exists "Auth manage artists" on public.artists;
+create policy "Auth manage artists"
   on public.artists for insert to authenticated
   with check (true);
 
-create policy if not exists "Auth update artists"
+drop policy if exists "Auth update artists" on public.artists;
+create policy "Auth update artists"
   on public.artists for update to authenticated
   using (true) with check (true);
 
 -- Event-Artists policies
-create policy if not exists "Public event_artists read"
+drop policy if exists "Public event_artists read" on public.event_artists;
+create policy "Public event_artists read"
   on public.event_artists for select
   using (true);
 
-create policy if not exists "Auth manage event_artists"
+drop policy if exists "Auth manage event_artists" on public.event_artists;
+create policy "Auth manage event_artists"
   on public.event_artists for insert to authenticated
   with check (true);
 
 -- Pricing tiers policies
-create policy if not exists "Public tiers read"
+drop policy if exists "Public tiers read" on public.pricing_tiers;
+create policy "Public tiers read"
   on public.pricing_tiers for select
   using (true);
 
-create policy if not exists "Auth manage tiers"
+drop policy if exists "Auth manage tiers" on public.pricing_tiers;
+create policy "Auth manage tiers"
   on public.pricing_tiers for insert to authenticated
   with check (true);
 
-create policy if not exists "Auth update tiers"
+drop policy if exists "Auth update tiers" on public.pricing_tiers;
+create policy "Auth update tiers"
   on public.pricing_tiers for update to authenticated
   using (true) with check (true);
 
 -- Tickets policies (owner-only visibility)
-create policy if not exists "Owner reads own tickets"
+drop policy if exists "Owner reads own tickets" on public.tickets;
+create policy "Owner reads own tickets"
   on public.tickets for select to authenticated
   using (user_id = auth.uid());
 
-create policy if not exists "Owner creates tickets"
+drop policy if exists "Owner creates tickets" on public.tickets;
+create policy "Owner creates tickets"
   on public.tickets for insert to authenticated
   with check (user_id = auth.uid());
 
-create policy if not exists "Owner updates own tickets"
+drop policy if exists "Owner updates own tickets" on public.tickets;
+create policy "Owner updates own tickets"
   on public.tickets for update to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
 -- Votes policies
-create policy if not exists "Public votes read"
+drop policy if exists "Public votes read" on public.votes;
+create policy "Public votes read"
   on public.votes for select
   using (true);
 
-create policy if not exists "Owner casts votes"
+drop policy if exists "Owner casts votes" on public.votes;
+create policy "Owner casts votes"
   on public.votes for insert to authenticated
   with check (user_id = auth.uid());
 
 -- Treasury policies
-create policy if not exists "Public treasury read"
+drop policy if exists "Public treasury read" on public.treasury_entries;
+create policy "Public treasury read"
   on public.treasury_entries for select
   using (true);
 -- No public inserts/updates for treasury; handle via service role/server
@@ -280,4 +308,3 @@ begin
 end $$;
 
 commit;
-

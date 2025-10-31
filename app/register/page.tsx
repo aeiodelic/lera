@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
+import { supabase, appBaseUrl } from '@/lib/supabase'
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
@@ -10,11 +10,10 @@ export default function RegisterPage() {
   const signInWithGoogle = async () => {
     try {
       setLoading(true)
-      const origin = typeof window !== 'undefined' ? window.location.origin : ''
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${origin}/auth/callback`,
+          redirectTo: `${appBaseUrl}/auth/callback`,
           queryParams: { prompt: 'consent' },
         },
       })
@@ -44,4 +43,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
