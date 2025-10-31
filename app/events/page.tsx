@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { getSupabase, supabaseReady } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 type EventRow = {
   id: string
@@ -21,7 +22,8 @@ type EventRow = {
   tags: string[]
 }
 
-type EventWithLineup = EventRow & { lineup: string[] }
+type ArtistItem = { id: string; name: string }
+type EventWithLineup = EventRow & { lineup: ArtistItem[] }
 
 const fallbackEvents: EventWithLineup[] = [
   {
@@ -35,11 +37,15 @@ const fallbackEvents: EventWithLineup[] = [
     tickets_cap: 1000,
     quorum: 35,
     tags: ['Open-air', 'Transparent budget', 'Decentralized'],
-    lineup: ['Kindzadza', 'Ajja', 'Earthling'],
+    lineup: [
+      { id: 'a1', name: 'Kindzadza' },
+      { id: 'a2', name: 'Ajja' },
+      { id: 'a3', name: 'Earthling' },
+    ],
   },
 ]
 
-function EventCard({ e }: { e: EventWithLineup }) {
+function EventCard({ e, onVote }: { e: EventWithLineup; onVote: (eventId: string, artist: ArtistItem) => void }) {
   const pct = Math.min(100, Math.round((e.raised / Math.max(1, e.target)) * 100))
   return (
     <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40">
@@ -51,7 +57,15 @@ function EventCard({ e }: { e: EventWithLineup }) {
         <div className="text-sm text-zinc-300">{e.location}</div>
         <div className="text-sm text-zinc-400">Event: {e.event_date || 'TBD'} · Deadline: {e.deadline_date || 'TBD'}</div>
         <div className="flex flex-wrap gap-2">{e.tags?.map((t) => <Badge key={t} className="bg-zinc-800 text-zinc-200">{t}</Badge>)}</div>
-        <div className="text-sm text-zinc-300">Line-up: {e.lineup.join(', ')}</div>
+        <div className="text-sm text-zinc-300">Line-up:</div>
+        <div className="grid gap-2 md:grid-cols-2">
+          {e.lineup.map((a) => (
+            <div key={a.id} className="flex items-center justify-between rounded-xl border border-zinc-800/60 p-2">
+              <div className="font-medium">{a.name}</div>
+              <Button size="sm" onClick={() => onVote(e.id, a)}>Vote</Button>
+            </div>
+          ))}
+        </div>
         <div>
           <Progress value={pct} className="h-2" />
           <div className="mt-1 text-xs text-zinc-400">${e.raised.toLocaleString()} / ${e.target.toLocaleString()}</div>
@@ -67,6 +81,7 @@ function EventCard({ e }: { e: EventWithLineup }) {
 export default function EventsPage() {
   const [events, setEvents] = useState<EventWithLineup[] | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const load = async () => {
@@ -82,18 +97,18 @@ export default function EventsPage() {
           .order('created_at', { ascending: false })
         if (error) throw error
         const ids = (rows || []).map((r) => r.id)
-        let lineupMap = new Map<string, string[]>()
+        let lineupMap = new Map<string, ArtistItem[]>()
         if (ids.length) {
           // Fetch lineup per event via join
           const { data: ea } = await supabase
             .from('event_artists')
-            .select('event_id, artists(name)')
+            .select('event_id, artist_id, artists ( id, name )')
             .in('event_id', ids)
           for (const row of ea || []) {
-            const arr = lineupMap.get(row.event_id) || []
-            const name = (row as any).artists?.name
-            if (name) arr.push(name)
-            lineupMap.set(row.event_id, arr)
+            const arr = lineupMap.get((row as any).event_id) || []
+            const artist = (row as any).artists
+            if (artist?.id) arr.push({ id: artist.id, name: artist.name })
+            lineupMap.set((row as any).event_id, arr)
           }
         }
         const result: EventWithLineup[] = (rows || []).map((r: any) => ({ ...r, lineup: lineupMap.get(r.id) || [] }))
@@ -107,6 +122,26 @@ export default function EventsPage() {
     load()
   }, [])
 
+  const handleVote = async (eventId: string, artist: ArtistItem) => {
+    try {
+      if (!supabaseReady) return alert('Please sign in to vote')
+      const supabase = getSupabase()
+      const { data: ud } = await supabase.auth.getUser()
+      const uid = ud?.user?.id
+      if (!uid) {
+        router.push('/profile')
+        return
+      }
+      const { error } = await supabase
+        .from('votes')
+        .upsert({ event_id: eventId, artist_id: artist.id, user_id: uid, weight: 1 }, { onConflict: 'event_id,artist_id,user_id' })
+      if (error) throw error
+      alert(`Voted for ${artist.name}`)
+    } catch (err: any) {
+      alert(err?.message || 'Failed to vote')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
       <SiteHeader />
@@ -116,7 +151,7 @@ export default function EventsPage() {
         {!loading && (
           <div className="grid gap-6 md:grid-cols-2">
             {(events || []).map((e) => (
-              <EventCard key={e.id} e={e} />
+              <EventCard key={e.id} e={e} onVote={handleVote} />
             ))}
           </div>
         )}
@@ -124,4 +159,3 @@ export default function EventsPage() {
     </div>
   )
 }
-
