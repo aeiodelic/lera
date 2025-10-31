@@ -136,9 +136,7 @@ export default function ProfilePage() {
     }
   }
 
-  const usePrivyWallet = async () => {
-    alert('Privy wallet flow is not configured yet on this deployment. Set NEXT_PUBLIC_PRIVY_APP_ID and we can enable it.')
-  }
+  // Privy wallet removed per request
 
   if (loading) {
     return (
@@ -186,11 +184,7 @@ export default function ProfilePage() {
           <Input readOnly value={walletAddress || ''} placeholder="Not connected" />
           <div className="flex gap-2">
             <Button onClick={connectWallet}>Connect Wallet</Button>
-            <Button variant="secondary" onClick={usePrivyWallet}>Use Privy Wallet</Button>
           </div>
-          {!process.env.NEXT_PUBLIC_PRIVY_APP_ID && (
-            <div className="text-xs text-zinc-500">Set NEXT_PUBLIC_PRIVY_APP_ID to enable Privy.</div>
-          )}
         </div>
       </div>
     </div>
