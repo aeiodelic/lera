@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Menu, Ticket, Vote as VoteIcon, Wallet, Music2, Users, Sparkles, Gauge, Coins, Info, ExternalLink, QrCode, Calendar, Camera, Globe, Share2, MessageSquareHeart, Plus, Star, Lock, ReceiptText, HandCoins, Shield } from 'lucide-react'
 
@@ -212,6 +213,7 @@ export default function Page() {
   const [active, setActive] = useState<string>('events');
   const [passOpen, setPassOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const router = useRouter()
 
   return (
     <div className={`${brand.bg} min-h-screen text-zinc-100`}>
@@ -229,7 +231,7 @@ export default function Page() {
           </nav>
           <div className="flex items-center justify-end gap-2">
             <Button variant="ghost" onClick={() => setPassOpen(true)}>My Pass</Button>
-            <Button variant="secondary" onClick={() => setProfileOpen(true)}>Profile</Button>
+            <Button variant="secondary" onClick={() => router.push('/profile')}>Profile</Button>
             <Button variant="ghost" className="md:hidden"><Menu /></Button>
           </div>
         </div>
