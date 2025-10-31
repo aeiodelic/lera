@@ -97,8 +97,36 @@ export default function ProfilePage() {
       const accounts: string[] = await eth.request({ method: 'eth_requestAccounts' })
       const addr = (accounts?.[0] || '').toLowerCase()
       if (!addr) return
+      const chainIdHex: string = await eth.request({ method: 'eth_chainId' })
+      const chainId = parseInt(chainIdHex, 16)
+
+      // Prepare SIWE message on server
+      const prep = await fetch('/api/siwe/prepare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr, chainId }),
+      }).then(r => r.json())
+      if (!prep?.message) throw new Error('Failed to prepare SIWE message')
+
+      // Sign message with MetaMask
+      const signature: string = await eth.request({
+        method: 'personal_sign',
+        params: [prep.message, addr],
+      })
+
+      // Verify on server
+      const verify = await fetch('/api/siwe/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prep.message, signature }),
+      }).then(r => r.json())
+      if (!verify?.ok) throw new Error(verify?.error || 'SIWE verification failed')
+
       setWalletAddress(addr)
-      if (!userId) return
+      if (!userId) {
+        alert('Wallet verified. Sign in to link it to your account.')
+        return
+      }
       const { error } = await getSupabase().from('profiles').update({ wallet_address: addr }).eq('id', userId)
       if (error) throw error
       setProfile((p) => p ? { ...p, wallet_address: addr } : p)
