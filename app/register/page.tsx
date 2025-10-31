@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { supabase, appBaseUrl } from '@/lib/supabase'
+import { appBaseUrl, supabaseReady, getSupabase } from '@/lib/supabase'
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
@@ -10,7 +10,8 @@ export default function RegisterPage() {
   const signInWithGoogle = async () => {
     try {
       setLoading(true)
-      const { error } = await supabase.auth.signInWithOAuth({
+      if (!supabaseReady) throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.')
+      const { error } = await getSupabase().auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${appBaseUrl}/auth/callback`,

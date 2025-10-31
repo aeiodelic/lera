@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, appBaseUrl } from '@/lib/supabase'
+import { appBaseUrl, supabaseReady, getSupabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { usePrivy } from '@privy-io/react-auth'
 
 type Profile = {
   id: string
@@ -23,22 +22,22 @@ export default function ProfilePage() {
   const [walletAddress, setWalletAddress] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
-  const { login, user: privyUser, ready: privyReady } = usePrivy()
 
   useEffect(() => {
     const init = async () => {
-      const { data } = await supabase.auth.getUser()
+      if (!supabaseReady) throw new Error('Supabase not configured')
+      const { data } = await getSupabase().auth.getUser()
       const u = data?.user ?? null
       setUserId(u?.id ?? null)
       setEmail(u?.email ?? null)
       if (u?.id) {
         let p: any = null
-        const sel = await supabase.from('profiles').select('*').eq('id', u.id).maybeSingle()
+        const sel = await getSupabase().from('profiles').select('*').eq('id', u.id).maybeSingle()
         if (sel.data) {
           p = sel.data
         } else {
           // Backfill missing profile if trigger didn't run yet
-          const ins = await supabase.from('profiles').insert({ id: u.id }).select().single()
+          const ins = await getSupabase().from('profiles').insert({ id: u.id }).select().single()
           if (!ins.error) p = ins.data
         }
         if (p) {
@@ -50,7 +49,7 @@ export default function ProfilePage() {
       setLoading(false)
     }
     init()
-    const { data: sub } = supabase.auth.onAuthStateChange((_e: any, session: any) => {
+    const { data: sub } = getSupabase().auth.onAuthStateChange((_e: any, session: any) => {
       if (!session) {
         setUserId(null); setEmail(null); setProfile(null)
       } else {
@@ -61,14 +60,16 @@ export default function ProfilePage() {
   }, [])
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    if (!supabaseReady) return alert('Supabase not configured')
+    await getSupabase().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${appBaseUrl}/auth/callback`, queryParams: { prompt: 'consent' } },
     })
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    if (!supabaseReady) return
+    await getSupabase().auth.signOut()
     router.refresh()
   }
 
@@ -76,7 +77,7 @@ export default function ProfilePage() {
     if (!userId) return
     try {
       setSaving(true)
-      const { error } = await supabase.from('profiles').update({ username }).eq('id', userId)
+      const { error } = await getSupabase().from('profiles').update({ username }).eq('id', userId)
       if (error) throw error
       setProfile((p) => p ? { ...p, username } : p)
     } catch (err: any) {
@@ -98,7 +99,7 @@ export default function ProfilePage() {
       if (!addr) return
       setWalletAddress(addr)
       if (!userId) return
-      const { error } = await supabase.from('profiles').update({ wallet_address: addr }).eq('id', userId)
+      const { error } = await getSupabase().from('profiles').update({ wallet_address: addr }).eq('id', userId)
       if (error) throw error
       setProfile((p) => p ? { ...p, wallet_address: addr } : p)
     } catch (err: any) {
@@ -108,28 +109,7 @@ export default function ProfilePage() {
   }
 
   const usePrivyWallet = async () => {
-    try {
-      if (!login) {
-        alert('Privy is not configured. Set NEXT_PUBLIC_PRIVY_APP_ID.')
-        return
-      }
-      await login()
-      const u: any = privyUser as any
-      const addr = u?.wallet?.address || (u?.linkedAccounts || []).find((a: any) => a.type === 'wallet')?.address
-      if (!addr) {
-        alert('No Privy wallet address found.')
-        return
-      }
-      const lower = String(addr).toLowerCase()
-      setWalletAddress(lower)
-      if (!userId) return
-      const { error } = await supabase.from('profiles').update({ wallet_address: lower }).eq('id', userId)
-      if (error) throw error
-      setProfile((p) => p ? { ...p, wallet_address: lower } : p)
-    } catch (err: any) {
-      console.error(err)
-      alert(err?.message || 'Privy login failed')
-    }
+    alert('Privy wallet flow is not configured yet on this deployment. Set NEXT_PUBLIC_PRIVY_APP_ID and we can enable it.')
   }
 
   if (loading) {

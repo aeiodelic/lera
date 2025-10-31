@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabase, supabaseReady } from '@/lib/supabase'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -10,7 +10,8 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const run = async () => {
       try {
-        const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
+        if (!supabaseReady) throw new Error('Supabase not configured')
+        const { error } = await getSupabase().auth.exchangeCodeForSession(window.location.href)
         if (error) throw error
       } catch (err) {
         console.error('OAuth callback error', err)
@@ -28,4 +29,3 @@ export default function AuthCallbackPage() {
     </div>
   )
 }
-
