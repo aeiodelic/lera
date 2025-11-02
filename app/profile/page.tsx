@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { appBaseUrl, supabaseReady, getSupabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ type Profile = {
   wallet_address: string | null
 }
 
-export default function ProfilePage() {
+function ProfilePageInner() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
   const [email, setEmail] = useState<string | null>(null)
@@ -223,5 +223,20 @@ export default function ProfilePage() {
         </Tabs>
       </main>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+        <SiteHeader />
+        <main className="mx-auto max-w-7xl px-4 py-8">
+          <div className="text-sm text-zinc-400">Loading…</div>
+        </main>
+      </div>
+    }>
+      <ProfilePageInner />
+    </Suspense>
   )
 }
