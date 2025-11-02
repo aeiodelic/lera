@@ -10,8 +10,8 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
       <SiteHeader />
-      <main className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-2 gap-8 px-4 py-10">
-        <section className="space-y-6 order-1">
+      <main className="mx-auto max-w-7xl px-4 py-10">
+        <section className="space-y-6">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Explore Events</h1>
           <p className="text-zinc-300">Discover transparent, community-funded shows with gasless voting and clear treasury splits. LAcra makes it simple to fund an event, vote the lineup, and get your ticket in one place.</p>
           <div className="flex gap-3">
@@ -40,11 +40,7 @@ export default function AboutPage() {
             <Badge className="bg-zinc-800 text-zinc-200">Supabase</Badge>
           </div>
         </section>
-        <aside className="order-2">
-          <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 h-80 w-full" />
-        </aside>
       </main>
     </div>
   )
 }
-

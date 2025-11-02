@@ -147,6 +147,11 @@ export default function EventsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight mb-4">Events</h1>
+        <div className="mb-4 flex items-center justify-end">
+          <Link href="/events/new">
+            <Button size="sm" className="md:size-default">Create Event</Button>
+          </Link>
+        </div>
         {loading && <div className="text-sm text-zinc-400">Loading events…</div>}
         {!loading && (
           <div className="grid gap-6 md:grid-cols-2">

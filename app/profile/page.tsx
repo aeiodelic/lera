@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { appBaseUrl, supabaseReady, getSupabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SiteHeader } from '@/components/site-header'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type Profile = {
   id: string
@@ -22,10 +24,20 @@ export default function ProfilePage() {
   const [walletAddress, setWalletAddress] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const activeParam = (searchParams?.get('tab') || 'profile').toLowerCase()
+  const activeTab: 'profile' | 'wallet' = activeParam === 'wallet' ? 'wallet' : 'profile'
+  const setActiveTab = (tab: 'profile' | 'wallet') => {
+    const sp = new URLSearchParams(searchParams?.toString() || '')
+    sp.set('tab', tab)
+    const qs = sp.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
 
   useEffect(() => {
     const init = async () => {
-      if (!supabaseReady) throw new Error('Supabase not configured')
+      if (!supabaseReady) { setLoading(false); return }
       const { data } = await getSupabase().auth.getUser()
       const u = data?.user ?? null
       setUserId(u?.id ?? null)
@@ -49,6 +61,7 @@ export default function ProfilePage() {
       setLoading(false)
     }
     init()
+    if (!supabaseReady) return
     const { data: sub } = getSupabase().auth.onAuthStateChange((_e: any, session: any) => {
       if (!session) {
         setUserId(null); setEmail(null); setProfile(null)
@@ -140,53 +153,75 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4">
-        <div className="text-sm text-zinc-400">Loading…</div>
+      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+        <SiteHeader />
+        <main className="mx-auto max-w-7xl px-4 py-8">
+          <div className="text-sm text-zinc-400">Loading…</div>
+        </main>
       </div>
     )
   }
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6">
-          <div className="mb-4 text-center">
-            <div className="text-2xl font-semibold tracking-tight">Welcome</div>
-            <div className="text-sm text-zinc-400">Sign in to access your profile</div>
+      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+        <SiteHeader />
+        <main className="mx-auto max-w-7xl px-4 py-8">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6">
+            <div className="mb-4 text-center">
+              <div className="text-2xl font-semibold tracking-tight">Welcome</div>
+              <div className="text-sm text-zinc-400">Sign in to access your profile</div>
+            </div>
+            <Button onClick={signInWithGoogle} className="w-full">Continue with Google</Button>
           </div>
-          <Button onClick={signInWithGoogle} className="w-full">Continue with Google</Button>
-        </div>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-xl rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+      <SiteHeader />
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <div className="text-xl font-semibold tracking-tight">Your Profile</div>
+            <h1 className="text-2xl font-semibold tracking-tight">Your Profile</h1>
             <div className="text-sm text-zinc-400">{email}</div>
           </div>
           <Button variant="secondary" onClick={signOut}>Sign out</Button>
         </div>
 
-        <div className="grid gap-3">
-          <label className="text-sm text-zinc-300">Username</label>
-          <Input value={username} onChange={(e: any) => setUsername(e.target.value)} placeholder="e.g. alex" />
-          <div>
-            <Button onClick={saveProfile} disabled={saving} className="mt-2">{saving ? 'Saving…' : 'Save'}</Button>
-          </div>
-        </div>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab((v as 'profile' | 'wallet'))}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="wallet">Wallet</TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-3">
-          <label className="text-sm text-zinc-300">Wallet</label>
-          <Input readOnly value={walletAddress || ''} placeholder="Not connected" />
-          <div className="flex gap-2">
-            <Button onClick={connectWallet}>Connect Wallet</Button>
-          </div>
-        </div>
-      </div>
+          <TabsContent value="profile">
+            <div className="w-full max-w-xl rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 space-y-6">
+              <div className="grid gap-2">
+                <label className="text-sm text-zinc-300">Username</label>
+                <Input value={username} onChange={(e: any) => setUsername(e.target.value)} placeholder="e.g. alex" />
+                <div>
+                  <Button onClick={saveProfile} disabled={saving} className="mt-2">{saving ? 'Saving…' : 'Save'}</Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <div className="w-full max-w-xl rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 space-y-6">
+              <div className="grid gap-2">
+                <label className="text-sm text-zinc-300">Wallet</label>
+                <Input readOnly value={walletAddress || ''} placeholder="Not connected" />
+                <div className="flex gap-2">
+                  <Button onClick={connectWallet}>Connect Wallet</Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   )
 }
