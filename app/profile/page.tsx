@@ -153,7 +153,7 @@ function ProfilePageInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+      <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
         <SiteHeader />
         <main className="mx-auto max-w-7xl px-4 py-8">
           <div className="text-sm text-zinc-400">Loading…</div>
@@ -164,7 +164,7 @@ function ProfilePageInner() {
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+      <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
         <SiteHeader />
         <main className="mx-auto max-w-7xl px-4 py-8">
           <div className="w-full max-w-md rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6">
@@ -180,7 +180,7 @@ function ProfilePageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+    <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-4 flex items-center justify-between">
@@ -229,7 +229,7 @@ function ProfilePageInner() {
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+      <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
         <SiteHeader />
         <main className="mx-auto max-w-7xl px-4 py-8">
           <div className="text-sm text-zinc-400">Loading…</div>

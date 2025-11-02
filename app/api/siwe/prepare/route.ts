@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const msg = new SiweMessage({
     domain: host,
     address,
-    statement: 'Sign in to LAcra',
+    statement: 'Sign in to lera',
     uri: origin,
     version: '1',
     chainId: Number(chainId),
@@ -32,4 +32,3 @@ export async function POST(request: Request) {
   })
   return res
 }
-

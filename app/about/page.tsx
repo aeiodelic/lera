@@ -8,12 +8,12 @@ import { Separator } from '@/components/ui/separator'
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+    <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 py-10">
         <section className="space-y-6">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Explore Events</h1>
-          <p className="text-zinc-300">Discover transparent, community-funded shows with gasless voting and clear treasury splits. LAcra makes it simple to fund an event, vote the lineup, and get your ticket in one place.</p>
+          <p className="text-zinc-300">Discover transparent, community-funded shows with gasless voting and clear treasury splits. lera makes it simple to fund an event, vote the lineup, and get your ticket in one place.</p>
           <div className="flex gap-3">
             <Link href="/events"><Button size="lg">Browse Events</Button></Link>
             <Link href="/profile"><Button size="lg" variant="secondary">Your Profile</Button></Link>

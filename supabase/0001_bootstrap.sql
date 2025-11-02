@@ -292,7 +292,7 @@ declare
   a3 uuid;
 begin
   insert into public.events (title, status, location, event_date, deadline_date, target, raised, tickets_cap, quorum, tags)
-  values ('LAcra Genesis #0', 'funding', 'Santa Marta / Tayrona area', date '2026-03-15', date '2025-11-30', 20000, 7680, 1000, 35, array['Open-air','Transparent budget','Decentralized'])
+  values ('lera Genesis #0', 'funding', 'Santa Marta / Tayrona area', date '2026-03-15', date '2025-11-30', 20000, 7680, 1000, 35, array['Open-air','Transparent budget','Decentralized'])
   returning id into ev_id;
 
   insert into public.pricing_tiers (event_id, tier, price, total)

@@ -28,7 +28,7 @@ type EventWithLineup = EventRow & { lineup: ArtistItem[] }
 const fallbackEvents: EventWithLineup[] = [
   {
     id: 'lera-0',
-    title: 'LAcra Genesis #0',
+    title: 'lera Genesis #0',
     location: 'Santa Marta / Tayrona area',
     event_date: '2026-03-15',
     deadline_date: '2025-11-30',
@@ -143,7 +143,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0b0f1a] via-[#0b0f1a] to-[#0b0f1a] text-zinc-100">
+    <div className="min-h-screen bg-gradient-to-b from-[#07130d] via-[#061a12] to-[#04140e] text-zinc-100">
       <SiteHeader />
       <main className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight mb-4">Events</h1>
